@@ -111,6 +111,10 @@ static void fixup_reason(struct latency_line *line, char *c)
 		*(c2++) = 0;
 	} else
 		strncpy(line->reason, c2, 1024);
+
+	c2 = strchr(line->reason, '\n');
+	if (c2)
+		*c2=0;
 }
 
 void parse_global_list(void)
@@ -538,19 +542,13 @@ static void cleanup_sysctl(void)
 int main(int argc, char **argv)
 {
 	int i, use_gtk = 0;
+	int console_dump = 0;
 
 	enable_sysctl();
 	enable_fsync_tracer();
 	atexit(cleanup_sysctl);
 
-#ifdef HAS_GTK_GUI
-	if (preinitialize_gtk_ui(&argc, &argv))
-		use_gtk = 1;
-#endif
-	if (!use_gtk)
-		preinitialize_text_ui(&argc, &argv);
-
-	for (i = 1; i < argc; i++)		
+	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i],"-d") == 0) {
 			init_translations("latencytop.trans");
 			parse_global_list();
@@ -558,6 +556,17 @@ int main(int argc, char **argv)
 			dump_global_to_console();
 			return EXIT_SUCCESS;
 		}
+		if (strcmp(argv[i],"-c") == 0)
+			console_dump = 1;
+	}
+
+#ifdef HAS_GTK_GUI
+	if (!console_dump && preinitialize_gtk_ui(&argc, &argv))
+		use_gtk = 1;
+#endif
+	if (!console_dump && !use_gtk)
+		preinitialize_text_ui(&argc, &argv);
+
 	for (i = 1; i < argc; i++)
 		if (strcmp(argv[i], "--unknown") == 0) {
 			noui = 1;
@@ -579,12 +588,17 @@ int main(int argc, char **argv)
 		sleep(5);
 		fprintf(stderr, ".");
 	}
+
+	if (console_dump) {
+		start_text_dump();
+	} else {
 #ifdef HAS_GTK_GUI
-	if (use_gtk)
-		start_gtk_ui();
-	else
+		if (use_gtk)
+			start_gtk_ui();
+		else
 #endif
-		start_text_ui();
+			start_text_ui();
+	}
 
 	prune_unused_procs();
 	delete_list();

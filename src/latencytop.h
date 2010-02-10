@@ -50,6 +50,7 @@ extern void start_gtk_ui(void);
 
 extern void preinitialize_text_ui(int *argc, char ***argv);
 extern void start_text_ui(void);
+extern void start_text_dump(void);
 
 extern char *translate(char *line);
 extern void init_translations(char *filename);
