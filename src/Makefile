@@ -1,17 +1,24 @@
 # FIXME: Use autoconf ?
-HAS_GTK_GUI = 1
+#HAS_GTK_GUI = 1
+#HAS_NCURSES = 1
 
 DESTDIR =
 SBINDIR = /usr/sbin
 XCFLAGS = -W  -g `pkg-config --cflags glib-2.0` -D_FORTIFY_SOURCE=2 -Wno-sign-compare
-LDF = -Wl,--as-needed `pkg-config --libs glib-2.0`   -lncursesw 
+LDF = -Wl,--as-needed `pkg-config --libs glib-2.0`   
 
-OBJS= latencytop.o text_display.o text_dump.o translate.o fsync.o
+OBJS= latencytop.o text_dump.o translate.o
 
 ifdef HAS_GTK_GUI
   XCFLAGS += `pkg-config --cflags gtk+-2.0` -DHAS_GTK_GUI
   LDF += `pkg-config --libs gtk+-2.0`
   OBJS += gtk_display.o 
+endif
+
+ifdef HAS_NCURSES
+  XCFLAGS += -DHAS_NCURSES
+  LDF += -lncursesw 
+  OBJS += text_display.o  fsync.o
 endif
 
 
